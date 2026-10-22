@@ -1,0 +1,19 @@
+name: AI Etudiant Auto
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * *'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt && sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: python final.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VIDEO-ETUDIANT-AI
+          path: FINAL_ETUDIANT.mp4
