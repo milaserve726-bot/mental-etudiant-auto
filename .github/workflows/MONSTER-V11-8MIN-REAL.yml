@@ -1,8 +1,8 @@
-name: 👑 MONSTER V11 - 8 MIN REAL 70MB
+name: V11 - 8 MIN REAL 70MB
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 17 * * *' # 19h Paris auto
+    - cron: '0 17 * * *'
 
 jobs:
   monster-v11:
@@ -14,99 +14,57 @@ jobs:
         run: |
           wget -q https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -O /tmp/ffmpeg.tar.xz
           tar -xf /tmp/ffmpeg.tar.xz -C /tmp
-          sudo cp /tmp/ffmpeg-*-static/ffmpeg /usr/local/bin/
-          pip install edge-tts Pillow google-api-python-client google-auth-oauthlib google-auth-httplib2 --quiet
+          sudo cp /tmp/ffmpeg-*-static/ffmpeg /tmp/ffmpeg-*-static/ffprobe /usr/local/bin/
+          pip install edge-tts Pillow --quiet
 
       - name: GENERATE LONG 8 MIN SCRIPT
         run: |
           mkdir -p output
-          cat > generate_v11.py << 'PY'
-          import asyncio, random, os
+          cat > gen.py << 'PY'
+          import asyncio
           import edge_tts
           from PIL import Image, ImageDraw, ImageFont
 
-          # سكريبت طويل 1200 كلمة = 8 دقايق
-          topics = [
-              {
-                "title": "Comment rester concentre 8h pour reviser sans te fatiguer",
-                "thumb": "FOCUS 8H\nSANS FATIGUE",
-                "parts": [
-                  "Tu n'arrives pas a rester concentre plus de 20 minutes? C'est normal. Ton cerveau n'est pas fait pour rester focus 3 heures d'affilee. Aujourd'hui je te donne la methode exacte de la Sorbonne.",
-                  "Partie 1: La methode 50-10-2. Tu travailles 50 minutes a fond. Pas de telephone. Pas de musique avec paroles. Juste toi et ton cours. Apres 50 minutes, tu fais 10 minutes de pause totale. Tu te leves, tu bois de l'eau, tu regardes par la fenetre. Et 2 minutes tu ecris ce que tu as retenu. C'est la partie la plus importante.",
-                  "Partie 2: Pourquoi 50 minutes? Une etude de Paris Cite en 2024 a montre que le cerveau retient 40 pourcent de plus quand tu fais 50-10 plutot que 2 heures non stop. Ton cerveau a besoin de vider sa memoire courte. Les 2 minutes d'ecriture transforment la memoire courte en memoire longue.",
-                  "Partie 3: Le matin a 8h ton cerveau est a 100 pourcent. Le soir a 22h il est a 30 pourcent. Donc revise les matieres difficiles le matin. Maths, physique, droit. L'apres midi fais les matieres faciles. Fiches, relecture.",
-                  "Partie 4: Coupe tout. Mets ton telephone en mode avion et mets le dans une autre piece. Pas dans ta poche. Dans une autre piece. Une etude montre que juste avoir ton telephone sur la table baisse ta concentration de 20 pourcent meme eteint.",
-                  "Partie 5: La technique de l'eau. Bois 500 millilitres d'eau avant de commencer. Ton cerveau est compose a 75 pourcent d'eau. Dehydrate, tu perds 15 pourcent de concentration. Garde une bouteille a cote de toi.",
-                  "Partie 6: Demain matin essaye. Leve toi a 7h. Bois de l'eau. Coupe ton telephone. Travaille 50 minutes sur une seule matiere. Pas deux. Une seule. Puis 10 minutes pause. Puis encore 50 minutes. Fais ca 3 fois. Tu auras fait 2h30 de vrai travail. C'est plus que 90 pourcent des etudiants qui font 8h de faux travail.",
-                  "Conclusion: Ce n'est pas le nombre d'heures qui compte. C'est la qualite. 3 heures de focus valent mieux que 10 heures distraites. Abonne toi a Mental Etudiant. On publie chaque jour a 19h heure de Paris. Demain on parle de comment gerer le stress des partiels. Laisse un commentaire dis moi ta matiere la plus difficile."
-                ]
-              },
-              {
-                "title": "Gerer le stress des partiels 5 techniques qui marchent vraiment",
-                "thumb": "STRESS\nPARTIELS FINI",
-                "parts": [
-                  "Tu stresses pour les partiels? Tu dors mal? Tu as mal au ventre? Je vais te donner 5 techniques qui marchent en 5 minutes. Testees a Assas et Sorbonne.",
-                  "Technique 1: Respiration 4-7-8. Inspire par le nez 4 secondes. Bloque 7 secondes. Expire par la bouche 8 secondes. Fais ca 3 fois. Ton rythme cardiaque baisse direct. Stress divise par 2. Fais le avant chaque epreuve.",
-                  "Technique 2: Ecris tes peurs. Prends une feuille. Ecris pendant 5 minutes tout ce qui te fait peur. J'ai peur de rater. J'ai peur de decevoir mes parents. Ecris tout. Une etude de Chicago montre que ca baisse l'anxiete de 30 pourcent. Ton cerveau vide la poubelle.",
-                  "Technique 3: Dors 7h minimum. Pas 5h. 7h. Ton cerveau consolide la memoire pendant le sommeil. Si tu dors 5h tu perds 40 pourcent de ce que tu as revise. Mieux vaut dormir 7h et reviser 5h que dormir 4h et reviser 8h.",
-                  "Technique 4: Bouge 20 minutes. Marche, cours, pompes. Le sport libere de la dopamine. C'est l'hormone anti stress. 20 minutes de marche = 2h de calme. Fais le matin avant de reviser.",
-                  "Technique 5: Methode des petits pas. Ne pense pas j'ai 10 chapitres. Pense je fais 1 page. Juste 1 page. Ton cerveau a peur des gros trucs. Il aime les petits. 1 page puis une autre. A la fin tu as fait 10 chapitres sans t'en rendre compte.",
-                  "Bonus: Le jour J. Arrive 30 minutes avant. Pas 5 minutes. 30 minutes. Ecoute de la musique calme. Pas de revision de derniere minute. Ca stresse plus. Tu sais deja. Fais confiance a ton travail. Tu as travaille. Tu vas reussir.",
-                  "Conclusion: Le stress c'est de l'energie mal utilisee. Transforme le en focus. Abonne toi a Mental Etudiant. On publie chaque jour a 19h heure de Paris. Commente je gere mon stress si tu vas essayer une technique."
-                ]
-              }
-          ]
+          text = """
+          Tu n'arrives pas a rester concentre plus de 20 minutes? C'est normal. Ton cerveau n'est pas fait pour rester focus 3 heures d'affilee. Aujourd'hui je te donne la methode exacte de la Sorbonne.
+          Partie 1: La methode 50-10-2. Tu travailles 50 minutes a fond. Pas de telephone. Pas de musique avec paroles. Juste toi et ton cours. Apres 50 minutes, tu fais 10 minutes de pause totale. Tu te leves, tu bois de l'eau, tu regardes par la fenetre. Et 2 minutes tu ecris ce que tu as retenu. C'est la partie la plus importante.
+          Partie 2: Pourquoi 50 minutes? Une etude de Paris Cite en 2024 a montre que le cerveau retient 40 pourcent de plus quand tu fais 50-10 plutot que 2 heures non stop.
+          Partie 3: Le matin a 8h ton cerveau est a 100 pourcent. Le soir a 22h il est a 30 pourcent. Donc revise les matieres difficiles le matin.
+          Partie 4: Coupe tout. Mets ton telephone en mode avion et mets le dans une autre piece. Pas dans ta poche. Dans une autre piece.
+          Partie 5: La technique de l'eau. Bois 500 millilitres d'eau avant de commencer. Ton cerveau est compose a 75 pourcent d'eau.
+          Partie 6: Demain matin essaye. Leve toi a 7h. Bois de l'eau. Coupe ton telephone. Travaille 50 minutes sur une seule matiere. Puis 10 minutes pause. Puis encore 50 minutes.
+          """ * 3
 
-          data = random.choice(topics)
-          # نبني نص 8 دقايق = نكرر + نزيد تفاصيل
-          full_text = ""
-          for part in data["parts"]:
-              full_text += part + " "
-              full_text += part + " " # نعاود كل جزء مرتين باش يولي طويل
-          
-          full_text = full_text * 2 # نضاعف كلشي مرتين = 8 دقايق حقيقية
+          print(f"{len(text.split())} mots = {len(text.split())/130:.1f} min")
 
-          print(f"Longueur texte: {len(full_text)} chars = {len(full_text.split())} mots")
-          print(f"Duree estimee: {len(full_text.split())/130:.1f} minutes")
+          open("output/title.txt","w",encoding="utf-8").write("Comment rester concentre 8h pour reviser sans te fatiguer")
+          open("output/thumb_text.txt","w",encoding="utf-8").write("FOCUS 8H\nSANS FATIGUE")
+          open("output/description.txt","w",encoding="utf-8").write("Methode Sorbonne pour rester concentre 8h")
 
-          open("output/title.txt","w",encoding="utf-8").write(data["title"])
-          open("output/thumb_text.txt","w",encoding="utf-8").write(data["thumb"])
-          open("output/description.txt","w",encoding="utf-8").write(f"{data['title']}\n\n🎓 MENTAL ETUDIANT - La chaine des etudiants qui reussissent\n\nDans cette video:\n{data['parts'][0]}\n\n📌 Resume:\n- Methode 50-10-2\n- Focus maximal\n- Resultats garantis\n\n🔔 Abonne-toi on publie chaque jour a 19h heure de Paris\n📩 Commente ta matiere difficile\n\n#etudiant #france #etudes #sorbonne #partiels #productivite #motivation\n\nVideo originale creee avec aide IA pour montage et voix.")
-
-          # Image fond video
-          W,H = 1920,1080
-          img = Image.new('RGB', (W,H), color=(15,23,42))
-          draw = ImageDraw.Draw(img)
+          W,H=1920,1080
+          img=Image.new('RGB',(W,H),color=(15,23,42))
+          d=ImageDraw.Draw(img)
           for y in range(H):
-              r = int(15 + (60-15)*y/H); g = int(23 + (80-23)*y/H); b = int(42 + (120-42)*y/H)
-              draw.line([(0,y),(W,y)], fill=(r,g,b))
+              d.line([(0,y),(W,y)],fill=(15+y//20,23+y//15,42+y//10))
           try:
-              font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 55)
+              f=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",50)
           except:
-              font = ImageFont.load_default()
-          # Titre au centre
-          title_wrapped = data["title"][:60]
-          bbox = draw.textbbox((0,0), title_wrapped, font=font)
-          w = bbox[2]-bbox[0]
-          draw.text(((W-w)//2, 450), title_wrapped, font=font, fill=(255,255,255), stroke_width=4, stroke_fill=(0,0,0))
-          draw.text((W//2-250, 600), "MENTAL ETUDIANT - 19H PARIS", font=font, fill=(255,235,59))
-          img.save("output/background.jpg", "JPEG", quality=95)
+              f=ImageFont.load_default()
+          d.text((100,500),"Comment rester concentre 8h pour reviser",font=f,fill=(255,255,255))
+          d.text((100,600),"MENTAL ETUDIANT - 19H PARIS",font=f,fill=(255,235,59))
+          img.save("output/background.jpg","JPEG",quality=95)
 
-          async def make_voice():
-              await edge_tts.Communicate(full_text, "fr-FR-DeniseNeural", rate="+5%").save("output/voice.mp3")
-          asyncio.run(make_voice())
+          async def voice():
+              await edge_tts.Communicate(text, "fr-FR-DeniseNeural", rate="+5%").save("output/voice.mp3")
+          asyncio.run(voice())
           PY
-          python generate_v11.py
+          python gen.py
           ls -lh output/
 
       - name: BUILD REAL 8 MIN VIDEO
         run: |
-          DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 output/voice.mp3)
-          echo "Voice duration: $DURATION seconds = $(python3 -c "print(f'{$DURATION/60:.1f} min')")"
-          ffmpeg -y -loop 1 -i output/background.jpg -i output/voice.mp3 -c:v libx264 -profile:v high -level 4.2 -pix_fmt yuv420p -crf 22 -c:a aac -b:a 192k -ar 48000 -movflags +faststart -shortest -r 30 output/mental-etudiant-8min-REAL.mp4
+          ffmpeg -y -loop 1 -i output/background.jpg -i output/voice.mp3 -c:v libx264 -pix_fmt yuv420p -crf 22 -c:a aac -b:a 192k -movflags +faststart -shortest -r 30 output/mental-etudiant-8min-REAL.mp4
           ls -lh output/
-          echo "✅ VIDEO REAL SIZE:"
-          du -h output/mental-etudiant-8min-REAL.mp4
 
       - name: THUMBNAIL VIRAL
         run: |
@@ -114,59 +72,20 @@ jobs:
           from PIL import Image, ImageDraw, ImageFont
           W,H=1280,720
           img=Image.new('RGB',(W,H),color=(15,23,42))
-          draw=ImageDraw.Draw(img)
+          d=ImageDraw.Draw(img)
           for y in range(H):
-              r=int(15+(139-15)*y/H); g=int(23+(92-23)*y/H); b=int(42+(246-42)*y/H)
-              draw.line([(0,y),(W,y)], fill=(r,g,b))
-          txt=open("output/thumb_text.txt",encoding="utf-8").read().strip()
+              d.line([(0,y),(W,y)],fill=(15+y//10,23+y//10,42+y//5))
           try:
-              fb=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",130)
-              fs=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",40)
+              fb=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",120)
+              fs=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",35)
           except:
               fb=ImageFont.load_default(); fs=ImageFont.load_default()
-          y=180
-          for line in txt.split('\n'):
-              bbox=draw.textbbox((0,0),line,font=fb); w=bbox[2]-bbox[0]; x=(W-w)//2
-              draw.text((x+8,y+8),line,font=fb,fill=(0,0,0))
-              draw.text((x,y),line,font=fb,fill=(255,235,59))
-              y+=160
-          draw.rounded_rectangle([(40,620),(400,680)],radius=15,fill=(255,255,255))
-          draw.text((60,628),"MENTAL ETUDIANT",font=fs,fill=(15,23,42))
-          draw.rounded_rectangle([(W-250,40),(W-40,100)],radius=15,fill=(255,59,59))
-          draw.text((W-230,50),"19H PARIS",font=fs,fill=(255,255,255))
+          d.text((200,200),"FOCUS 8H",font=fb,fill=(255,235,59),stroke_width=6,stroke_fill=(0,0,0))
+          d.text((200,350),"SANS FATIGUE",font=fb,fill=(255,255,255),stroke_width=6,stroke_fill=(0,0,0))
+          d.text((50,630),"MENTAL ETUDIANT",font=fs,fill=(0,0,0))
           img.save("output/thumbnail.jpg","JPEG",quality=95)
           PY
           python thumb.py
-
-      - name: Upload YouTube (if secrets)
-        env:
-          CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-        run: |
-          cat > upload.py << 'PY'
-          import os, sys
-          if not os.environ.get('CLIENT_ID'):
-              print("⚠️ Pas de secrets youtube - artifact seulement - normal")
-              sys.exit(0)
-          from google.oauth2.credentials import Credentials
-          from googleapiclient.discovery import build
-          from googleapiclient.http import MediaFileUpload
-          creds = Credentials(None, refresh_token=os.environ['REFRESH_TOKEN'], token_uri='https://oauth2.googleapis.com/token', client_id=os.environ['CLIENT_ID'], client_secret=os.environ['CLIENT_SECRET'], scopes=['https://www.googleapis.com/auth/youtube.upload'])
-          yt = build('youtube','v3', credentials=creds)
-          title = open('output/title.txt',encoding='utf-8').read().strip()
-          desc = open('output/description.txt',encoding='utf-8').read()
-          req = yt.videos().insert(part="snippet,status", body={"snippet":{"title":title[:95],"description":desc,"tags":["etudiant france","etudes"],"categoryId":"27"},"status":{"privacyStatus":"public","selfDeclaredMadeForKids":False}}, media_body=MediaFileUpload('output/mental-etudiant-8min-REAL.mp4', resumable=True))
-          res = req.execute()
-          vid=res['id']
-          print(f"✅ YOUTUBE: https://youtu.be/{vid}")
-          try:
-              yt.thumbnails().set(videoId=vid, media_body=MediaFileUpload('output/thumbnail.jpg')).execute()
-              print("✅ THUMB OK")
-          except Exception as e:
-              print(e)
-          PY
-          python upload.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
