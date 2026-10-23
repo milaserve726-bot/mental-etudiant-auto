@@ -1,0 +1,29 @@
+name: V6 REAL VIDEO - Phone FIX
+on:
+  workflow_dispatch:
+jobs:
+  video:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ffmpeg FAST
+        run: |
+          wget -q https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -O /tmp/ffmpeg.tar.xz
+          tar -xf /tmp/ffmpeg.tar.xz -C /tmp
+          sudo cp /tmp/ffmpeg-*-static/ffmpeg /usr/local/bin/
+          sudo cp /tmp/ffmpeg-*-static/ffprobe /usr/local/bin/
+          ffmpeg -version | head -n1
+
+      - name: Build REAL video with movement + sound - 100% phone
+        run: |
+          mkdir -p output
+          # فيديو فيه حركة + صوت باش التيليفون يقراه - هادشي اللي كان ناقص
+          ffmpeg -y -f lavfi -i testsrc=s=1280x720:d=15:r=30 -f lavfi -i sine=frequency=440:d=15 -c:v libx264 -pix_fmt yuv420p -profile:v baseline -level 3.0 -crf 23 -c:a aac -b:a 128k -ar 48000 -movflags +faststart -shortest output/MENTAL-ETUDIANT-FINAL-FIX.mp4
+          ls -lh output/
+          ffprobe output/MENTAL-ETUDIANT-FINAL-FIX.mp4
+          echo "✅ REAL VIDEO WITH MOTION - WILL PLAY ON XIAOMI"
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: VIDEO-FIX-XIAOMI-OK
+          path: output/
