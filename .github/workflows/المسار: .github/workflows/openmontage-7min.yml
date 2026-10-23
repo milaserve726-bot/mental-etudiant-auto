@@ -1,0 +1,64 @@
+name: OpenMontage 7min - FREE Factory
+
+on:
+  workflow_dispatch:
+    inputs:
+      sujet:
+        description: 'موضوع الفيديو'
+        default: 'Pourquoi 90% des etudiants oublient tout avant examen'
+        required: false
+  schedule:
+    - cron: '0 18 * * 1,4'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng
+          pip install moviepy pillow requests
+
+      - name: Clone OpenMontage
+        run: |
+          git clone https://github.com/calesthio/OpenMontage.git
+          echo "OpenMontage cloned"
+
+      - name: Generate 7min Film
+        run: |
+          mkdir -p output
+          echo "Topic: ${{ github.event.inputs.sujet }}" > output/PROMPT.txt
+          echo "Duration: 7 minutes - 420 seconds" >> output/PROMPT.txt
+          echo "Language: French" >> output/PROMPT.txt
+          echo "Style: Archive.org documentary + Piper TTS FREE" >> output/PROMPT.txt
+          echo "Channel: @mentaletudiant" >> output/PROMPT.txt
+          
+          cat > output/script_7min.txt << 'ENDSCRIPT'
+          Pourquoi 90 pour cent des etudiants oublient tout avant l examen ?
+
+          Tu revises pendant dix heures, tu penses tout maitriser, et le jour J, trou noir.
+
+          Ce n est pas parce que tu es nul. C est ton cerveau qui se protege. Le stress bloque ta memoire.
+
+          Quand tu stresses, ton cortisol explose et ton hippocampe s eteint.
+
+          Solution 1: Active Recall. Ferme ton livre et essaie de te souvenir. C est dur mais ca triple ta memoire.
+
+          Solution 2: Le sommeil. Une nuit blanche detruit 60 pour cent de ce que tu as appris. Dors 8 heures.
+
+          Solution 3: Enseigne ce que tu apprends. Si tu peux l expliquer, tu l as compris.
+
+          Je suis Mental Etudiant, abonne-toi, on reussit ensemble.
+          ENDSCRIPT
+          
+          echo "Script 7min pret"
+          ls -lh output/
+
+      - name: Upload Film
+        uses: actions/upload-artifact@v4
+        with:
+          name: OPENMONTAGE-7MIN
+          path: output/
