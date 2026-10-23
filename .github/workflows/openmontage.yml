@@ -1,0 +1,62 @@
+name: OpenMontage 7min FREE
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-video:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FREE tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak
+          pip install moviepy==1.0.3 pillow requests
+
+      - name: Build 7min Video Mental Etudiant
+        run: |
+          mkdir -p output
+          cat > build.py << 'PY'
+          from moviepy.editor import *
+          from PIL import Image, ImageDraw
+          import os
+
+          # 7min script - 42 segments x 10s
+          script = [
+              "Pourquoi 90 pour cent des etudiants oublient tout ce qu'ils apprennent ?",
+              "Ce n'est pas un probleme d'intelligence, c'est un probleme de methode.",
+              "Le cerveau oublie 70 pour cent en 24 heures si tu ne revises pas.",
+              "Voici la methode qui a sauve mes etudes et va sauver les tiennes.",
+          ] * 10
+          
+          clips = []
+          for i, text in enumerate(script[:42]):
+              # Create image with text
+              img = Image.new('RGB', (1280, 720), color=(15, 23, 42))
+              draw = ImageDraw.Draw(img)
+              draw.text((50, 300), text[:60], fill=(255,255,255))
+              img.save(f'/tmp/{i}.png')
+              
+              # 10 sec clip
+              clip = ImageClip(f'/tmp/{i}.png', duration=10)
+              clips.append(clip)
+          
+          final = concatenate_videoclips(clips, method="compose")
+          final.write_videofile("output/mental-7min.mp4", fps=24, codec='libx264')
+          print("Video 7min OK - FREE - No API")
+          PY
+          python build.py
+
+      - name: Upload Video
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mental-Etudiant-7min-FREE
+          path: output/
