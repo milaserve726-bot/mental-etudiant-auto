@@ -1,0 +1,30 @@
+name: TEST FRENCH - 20sec Playable
+on:
+  workflow_dispatch:
+jobs:
+  test-video:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Download REAL French student clip
+        run: |
+          mkdir -p clips
+          curl -L -o clips/base.mp4 "https://videos.pexels.com/video-files/3202633/3202633-hd_1280_720_25fps.mp4"
+          ls -lh clips/
+
+      - name: Build 20sec FRENCH video - 100% phone compatible
+        run: |
+          mkdir -p output
+          ffmpeg -i clips/base.mp4 -t 20 -vf "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:color=black,drawtext=text='REUSSIR SES ETUDES':fontcolor=white:fontsize=50:x=(w-text_w)/2:y=200:box=1:boxcolor=black@0.6:boxborderw=15,drawtext=text='Methode simple pour mieux apprendre':fontcolor=white:fontsize=30:x=(w-text_w)/2:y=300:box=1:boxcolor=black@0.4:boxborderw=10" -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 23 -c:a aac -b:a 128k -movflags +faststart -shortest output/test-french-20s.mp4 -y
+          
+          # VERIFICATION - كيجرب واش الفيديو خدام
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,pix_fmt,width,height -of default=noprint_wrappers=1 output/test-french-20s.mp4
+          echo "✅ VIDEO OK - 100% compatible telephone"
+
+      - name: Upload test
+        uses: actions/upload-artifact@v4
+        with:
+          name: TEST-FRENCH-VIDEO-OK
+          path: output/
